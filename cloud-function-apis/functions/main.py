@@ -2,6 +2,8 @@
 from firebase_functions import firestore_fn, https_fn
 from flask import jsonify, request
 # The Firebase Admin SDK to access Cloud Firestore.
+from firebase_functions import firestore_fn, https_fn
+from flask import jsonify, request
 from firebase_admin import initialize_app, firestore
 import google.cloud.firestore
 
@@ -24,5 +26,15 @@ def addmessage(req: https_fn.Request) -> https_fn.Response:
     # Send back a message that we've successfully written the message
     return https_fn.Response(f"Message with ID {doc_ref.id} added.")
 
+def receive_healthkit_data(request):
+    if request.method == 'POST':
+        sleep_data = request.get_json(silent=True)
+        print("Received Sleep Data:", sleep_data)
+
+        # Process the data as needed
+
+        return 'Data received successfully', 200
+    else:
+        return 'Method Not Allowed', 405
 
 
