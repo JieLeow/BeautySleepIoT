@@ -85,11 +85,31 @@ void loop() {
   if (Firebase.ready()) {
       // Read data from Arduino when available
     if (Serial.available()) {
-      sensorValue = Serial.parseInt();
-      Serial.println(sensorValue);
-      Generate a random value between 400 and 700
-      int randomData = random(400, 701); // 701 is exclusive
+      // sensorValue = Serial.parseInt();
+      // Serial.println(sensorValue);
+      // Generate a random value between 400 and 700
+      // int randomData = random(400, 701); // 701 is exclusive
 
+      String dataString = Serial.readStringUntil('\n');
+
+      // Split the data into its components
+      int gsrAverage = dataString.substring(0, dataString.indexOf(',')).toInt();
+      dataString = dataString.substring(dataString.indexOf(',') + 1);
+
+      float humidity = dataString.substring(0, dataString.indexOf(',')).toFloat();
+      dataString = dataString.substring(dataString.indexOf(',') + 1);
+
+      float tempC = dataString.substring(0, dataString.indexOf(',')).toFloat();
+      dataString = dataString.substring(dataString.indexOf(',') + 1);
+
+      float heatIndexC = dataString.substring(0, dataString.indexOf(',')).toFloat();
+      dataString = dataString.substring(dataString.indexOf(',') + 1);
+
+      float tempF = dataString.substring(0, dataString.indexOf(',')).toFloat();
+      dataString = dataString.substring(dataString.indexOf(',') + 1);
+
+      float heatIndexF = dataString.toFloat();
+      
       time_t now = time(nullptr);
       struct tm *ptm = localtime(&now);
 
@@ -99,14 +119,31 @@ void loop() {
 
       String path = String(USER_NAME) + "/data/" + String(timeString);
 
+      // Create a JSON object for data
+      FirebaseJson json;
+      json.set("timestamp", millis());
+      json.set("gsrAverage", gsrAverage);
+      json.set("humidity", humidity);
+      json.set("temperatureC", tempC);
+      json.set("temperatureF", tempF);
+      json.set("heatIndexC", heatIndexC);
+      json.set("heatIndexF", heatIndexF);
+
       // Push sensor value to Firebase
-      if (Firebase.RTDB.setInt(&fbdo, path, sensorValue)) {
+      // if (Firebase.RTDB.setInt(&fbdo, path, sensorValue)) {
+      //   Serial.println("Data sent successfully");
+      // } else {
+      //   Serial.println("Failed to send data");
+      //   Serial.println(fbdo.errorReason());
+      // }
+
+      // Push JSON object to Firebase
+      if (Firebase.RTDB.setJSON(&fbdo, path, &json)) {
         Serial.println("Data sent successfully");
       } else {
         Serial.println("Failed to send data");
         Serial.println(fbdo.errorReason());
       }
-      
     }
   }
     // Short delay to yield to background tasks
